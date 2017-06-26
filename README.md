@@ -4,10 +4,10 @@ A Python API to search News in websites. This simple code was written in Python 
 ## Introduction
 
 With this API you can:
-	- See the list of registered websites
-	- Register News websites
-	- List the latest News in a specific Website
-	- Search in all websites for News containing a keyword
+* See the list of registered websites
+* Register News websites
+* List the latest News in a specific Website
+* Search in all websites for News containing a keyword
 
 ## List
 
