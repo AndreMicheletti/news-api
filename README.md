@@ -1,5 +1,5 @@
 # news-api
-A Python API to search News in websites. This simple code was written in Python to training purposes
+A Python API to search News in websites. This simple code was written in Python for training purposes
 
 ## Introduction
 
