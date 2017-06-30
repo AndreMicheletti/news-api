@@ -29,6 +29,17 @@ parser.add_argument('website')
 parser.add_argument('tag')
 parser.add_argument('class')
 
+def require_arguments(required):
+	def wrap(f):
+		def new_f(_self):
+			args = parser.parse_args()
+			for arg in required:
+				if (args[arg] == None or args[arg] == ''):
+					abort(403, message="Please provide the argument {}".format(arg))
+			return f(_self)
+		return new_f
+	return wrap
+
 # Core search function - it uses the dictionary to search news on the websites
 def search_news(site, limit=5):
 	url = 'http://' + site
@@ -52,15 +63,14 @@ class NewsSites(Resource):
 	def get(self):
 		array = [key for key in sites.keys()]
 		return {'sites' : array } 
-		
+	
+	@require_arguments(['website','tag','class'])
 	def put(self):
 		args = parser.parse_args()
-		if ((args['website'] == None) or (args['class'] == None) or (args['tag'] == None)):
-			abort(403, message="Please provide the website to be included and thehtml tag and css class")
-		website = args['website'].lower().strip().replace('http','').replace(':','').replace('//','')
+		website = args['website'].replace('http','').replace(':','').replace('//','')
 		test = requests.get('http://' + website)
 		if (test.status_code == 200):
-			sites[website] = { 'tag' : args['tag'].lower(), 'class' : args['class'].lower() }
+			sites[website] = { 'tag' : args['tag'], 'class' : args['class'] }
 			return sites[website], 201
 		else:
 			abort(403, message="{} is not a valid website".format(website))
