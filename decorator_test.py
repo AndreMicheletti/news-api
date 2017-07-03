@@ -12,4 +12,6 @@ class cache_return(object):
 			self.cache[args] = value
 			return value
 
-			
+"""			
+https://www.turnkeylinux.org/blog/python-optimization
+"""
