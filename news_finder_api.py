@@ -1,3 +1,18 @@
+"""
+DECORATOR functions
+"""
+def require_arguments(required):
+	def wrap(f):
+		def new_f(_self):
+			args = parser.parse_args()
+			for arg in required:
+				if (args[arg] == None or args[arg] == ''):
+					abort(403, message="Please provide the argument {}".format(arg))
+			return f(_self)
+		return new_f
+	return wrap
+# END
+
 import string
 from flask import Flask
 from flask_restful import Resource, Api, reqparse, abort
@@ -28,17 +43,6 @@ parser.add_argument('limit')
 parser.add_argument('website')
 parser.add_argument('tag')
 parser.add_argument('class')
-
-def require_arguments(required):
-	def wrap(f):
-		def new_f(_self):
-			args = parser.parse_args()
-			for arg in required:
-				if (args[arg] == None or args[arg] == ''):
-					abort(403, message="Please provide the argument {}".format(arg))
-			return f(_self)
-		return new_f
-	return wrap
 
 # Core search function - it uses the dictionary to search news on the websites
 def search_news(site, limit=5):
