@@ -1,9 +1,11 @@
 
 class cached(object):
+
 	def __init__(self, func):
 		self.func = func
 		self.cache = {}
 		self.__name__ = func.__name__
+		
 	def __call__(self, *args):
 		import collections
 		if not isinstance(args, collections.Hashable):
@@ -15,17 +17,40 @@ class cached(object):
 			self.cache[args] = value
 			return value
 
+			
+import os
+import json
 
-def benchmark(func):
-	def time(*args, **kw):
+#DECORATOR CLASS for maintaining profile history
+class profile_and_save(object):
+	
+	def __init__(self, func):
+		self.func = func
+		self.__name__ = func.__name__
+		self.filename = 'profiler.json'
+		if (os.path.isfile(self.filename)):
+			with open(self.filename, 'r') as file:
+				self.data = json.load(file)
+		else:
+			self.data = {}
+			with open(self.filename, 'w') as file:
+				json.dump(self.data, file)
+				
+	def __call__(self, *args):
 		import time
-		t = time.process_time()
-		result = func(*args, **kw)
-		print('function {0} with args {1} runs in {2:f} seconds'.format(func.__name__, args ,time.process_time() - t))
+		import datetime
+		t1 = time.process_time()
+		result = self.func(*args)
+		elapsed = time.process_time() - t1
+		if not (self.__name__ in self.data.keys()):
+			self.data[self.__name__] = {}
+		self.data[self.__name__][str(datetime.datetime.now())] = str(elapsed)
+		with open(self.filename, 'w') as f:
+			json.dump(self.data, f)
 		return result
-	return time
 
-@benchmark
+
+@profile_and_save
 @cached
 def fib(n):
 	a,b = 1,1
