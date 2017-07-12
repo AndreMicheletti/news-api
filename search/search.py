@@ -14,13 +14,13 @@ def require_arguments(required):
 # END
 
 import string
-from flask import Flask
+from flask import Blueprint
 from flask_restful import Resource, Api, reqparse, abort
 import requests
 from bs4 import BeautifulSoup
 
-app = Flask(__name__)
-api = Api(app)
+search_blueprint = Blueprint('search', __name__)
+api = Api(search_blueprint)
 
 # Dictionary of know sites
 sites = {
@@ -49,12 +49,12 @@ def search_news(site, limit=5):
 	url = 'http://' + site
 	tag = sites[site]['tag']
 	class_ = sites[site]['class']
-	html = requests.get(url).content.decode('utf-8')
+	html = requests.get(url).content
 	soup = BeautifulSoup(html, 'html.parser')
 	result = []
 	i = 0
 	for tag in soup.find_all(tag, class_):
-		if (i == limit): break
+		if (limit != 0 and i == limit): break
 		if (tag.string != None):
 			result.append(tag.string.strip())
 			i += 1
@@ -105,19 +105,19 @@ class NewsFinder(Resource):
 		args = parser.parse_args()
 		if ((args['limit'] != None) and (args['limit']) != ''):
 			limit = int(args['limit'])
+		i = 0
 		for key in sites.keys():
 			array = []
-			for news in search_news(key, limit):
+			for news in search_news(key, 0):
+				if (limit != 0 and i == limit): break
 				if (query in news):
 					array.append(news)
+					i+=1
 				
 			result['found'][key] = array
 		return result
 	
 	
 api.add_resource(NewsSites, '/', '/sites', '/list')
-api.add_resource(NewsList, "/<string:site>")
-api.add_resource(NewsFinder, "/search/<string:query>")
-		
-if (__name__ == "__main__"):
-	app.run(debug=True)
+api.add_resource(NewsList, "/site/<string:site>")
+api.add_resource(NewsFinder, "/<string:query>")
