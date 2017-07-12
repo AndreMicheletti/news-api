@@ -1,1 +1,3 @@
 news/*
+*.pyc
+__pycache__/*
