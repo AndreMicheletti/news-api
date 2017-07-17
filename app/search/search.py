@@ -78,8 +78,6 @@ class NewsSites(Resource):
 			if (test.status_code == 200):
 				sites[website] = { 'tag' : args['tag'], 'class' : args['class'] }
 				return sites[website], 201
-			else:
-				abort(404, message="{} is not a valid website".format(website))
 		except Exception:
 			abort(404, message="{} is not a valid website".format(website))
 
@@ -89,8 +87,6 @@ class NewsSites(Resource):
 class NewsList(Resource):
 
 	def get(self, site):
-		if (site == None):
-			return 'Usage: put the news site name after / (example: /globo.com)'
 		site = site.lower().replace(' ','')
 		if not(site in sites.keys()):
 			abort(404, message="The website '{}' is not valid. Try /list to see the list".format(site))
