@@ -1,3 +1,9 @@
+import string
+from flask import Blueprint
+from flask_restful import Resource, Api, reqparse, abort
+import requests
+from bs4 import BeautifulSoup
+
 """
 DECORATOR functions
 """
@@ -7,17 +13,12 @@ def require_arguments(required):
 			args = parser.parse_args()
 			for arg in required:
 				if (args[arg] == None or args[arg] == ''):
-					abort(403, message="Please provide the argument {}".format(arg))
+					abort(404, message="Please provide the argument {}".format(arg))
 			return f(_self)
 		return new_f
 	return wrap
 # END
 
-import string
-from flask import Blueprint
-from flask_restful import Resource, Api, reqparse, abort
-import requests
-from bs4 import BeautifulSoup
 
 search_blueprint = Blueprint('search', __name__)
 api = Api(search_blueprint)
@@ -72,12 +73,16 @@ class NewsSites(Resource):
 	def put(self):
 		args = parser.parse_args()
 		website = args['website'].replace('http','').replace(':','').replace('//','')
-		test = requests.get('http://' + website)
-		if (test.status_code == 200):
-			sites[website] = { 'tag' : args['tag'], 'class' : args['class'] }
-			return sites[website], 201
-		else:
-			abort(403, message="{} is not a valid website".format(website))
+		try:
+			test = requests.get('http://' + website)
+			if (test.status_code == 200):
+				sites[website] = { 'tag' : args['tag'], 'class' : args['class'] }
+				return sites[website], 201
+			else:
+				abort(404, message="{} is not a valid website".format(website))
+		except Exception:
+			abort(404, message="{} is not a valid website".format(website))
+
 		
 
 # This Resource will list the news specified website
@@ -88,7 +93,7 @@ class NewsList(Resource):
 			return 'Usage: put the news site name after / (example: /globo.com)'
 		site = site.lower().replace(' ','')
 		if not(site in sites.keys()):
-			abort(403, message="The website '{}' is not valid. Try /list to see the list".format(site))
+			abort(404, message="The website '{}' is not valid. Try /list to see the list".format(site))
 		args = parser.parse_args()
 		limit = 5
 		if ((args['limit'] != None) and (args['limit']) != ''):
