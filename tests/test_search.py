@@ -3,7 +3,7 @@ from app import create_flask_app
 from unittest import mock
 from mock import patch
 from flask import Flask, Response
-from app.search import SearchEngine
+from app.search import SearchEngine, search_blueprint
 import pytest
 import json
 
@@ -28,13 +28,20 @@ def mocked_seach_news(site, limit=5):
 	return search_news_result
 
 
+SEARCH_BLUEPRINT_PREFIX = "/search"
 
-prefix = "/search"
-
-flask_app = create_flask_app()
-flask_app.testing = True
-
-client = flask_app.test_client()
+@pytest.fixture()
+def test_app():
+	class ClientTest(object):
+		flask_app = create_flask_app(search_blueprint_prefix=SEARCH_BLUEPRINT_PREFIX)
+		flask_app.testing = True
+		client = flask_app.test_client()
+		def get(self, url):
+			return ClientTest.client.get(SEARCH_BLUEPRINT_PREFIX + url)
+		def put(self, url):
+			return ClientTest.client.put(SEARCH_BLUEPRINT_PREFIX + url)
+	client_test = ClientTest()
+	return client_test
 
 """
 GIVEN: the News app
@@ -46,8 +53,8 @@ THEN: response code should be 200 OK
 def listing_endpoints(request):
 	return request.param
 
-def test_200_ok(listing_endpoints):
-	response = client.get(prefix + listing_endpoints)
+def test_200_ok(test_app, listing_endpoints):
+	response = test_app.get(listing_endpoints)
 	assert response.status_code == 200
 
 
@@ -74,10 +81,10 @@ def site_searching(request):
 	return request.param
 
 @patch.object(SearchEngine, 'search_news', mocked_seach_news)
-def test_site_searching(site_searching):
+def test_site_searching(test_app, site_searching):
 	from typing import List
 	( the_input, expected_output ) = site_searching
-	response = client.get(prefix + the_input)
+	response = test_app.get(the_input)
 	assert response.status_code == expected_output[0]
 	if (response.status_code == 200):
 		json_data = json.loads(response.data)
@@ -100,9 +107,9 @@ def string_searching_data(request):
 	return request.param
 
 @patch.object(SearchEngine, 'search_news', mocked_seach_news)
-def test_string_searching(string_searching_data):
+def test_string_searching(test_app, string_searching_data):
 	( the_input, expected_output ) = string_searching_data
-	response = client.get(prefix + the_input)
+	response = test_app.get(the_input)
 	assert response.status_code == expected_output[0]
 	if (response.status_code == 200):
 		json_data = json.loads(response.data)
@@ -128,8 +135,8 @@ def site_put(request):
 	return request.param
 
 @patch.object(SearchEngine, 'search_news', mocked_seach_news)
-def test_site_put(site_put):
+def test_site_put(test_app, site_put):
 	( the_input, expected_output ) = site_put
-	response = client.put(prefix + the_input, data=[])
+	response = test_app.put(the_input)
 	assert response.status_code == expected_output[0]
 	assert expected_output[1] in response.data.decode('utf8')
