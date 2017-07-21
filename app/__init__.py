@@ -1,1 +1,3 @@
-import search
+from app.app import *
+
+__all__ = ["app"]
