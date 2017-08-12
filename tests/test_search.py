@@ -1,4 +1,3 @@
-
 from app import create_flask_app
 from unittest import mock
 from mock import patch
@@ -86,8 +85,9 @@ def test_site_searching(test_app, site_searching):
 	( the_input, expected_output ) = site_searching
 	response = test_app.get(the_input)
 	assert response.status_code == expected_output[0]
+	str_response = response.data.decode('utf-8')
 	if (response.status_code == 200):
-		json_data = json.loads(response.data)
+		json_data = json.loads(str_response)
 		assert len(json_data) <= expected_output[1]
 
 
@@ -111,8 +111,9 @@ def test_string_searching(test_app, string_searching_data):
 	( the_input, expected_output ) = string_searching_data
 	response = test_app.get(the_input)
 	assert response.status_code == expected_output[0]
+	str_response = response.data.decode('utf-8')
 	if (response.status_code == 200):
-		json_data = json.loads(response.data)
+		json_data = json.loads(str_response)
 		for url_key in list(json_data["found"]):
 			assert len(json_data["found"][url_key]) <= expected_output[1]
 

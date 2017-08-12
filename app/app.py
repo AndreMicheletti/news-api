@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_restful import Resource, Api, reqparse, abort
-from app.search import search_blueprint
+from search import search_blueprint
 
 def create_flask_app(search_blueprint_prefix='/search'):
 	app = Flask(__name__)
